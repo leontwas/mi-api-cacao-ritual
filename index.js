@@ -40,7 +40,7 @@ app.get('/api/productos/:id', (req, res) => {
   leerProductos((err, productos) => {
     if (err) return res.status(500).json({ error: 'Error al leer los productos' });
 
-    const producto = productos.find((p) => p.id === id);
+    const producto = productos.find((p) => String(p.id) === String(id));
 
     if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' });

@@ -1,110 +1,58 @@
 [
-{
-  "id": "1",
-  "nombre": "Fuego Infernal",
-  "descripcion": "Una rodaja de carne gruesa con pepino fresco, lechuga, bañada en salsa 'The Last Dab Apollo' combinada con salsa 'Mad Dog 357 No. 9 Plutonium'.",
-  "precio": 4500,
-  "imagen": "/images/01_fuego_infernal.png",
-  "estado": "disponible",
-  "nivel_picante": 4
-},
-{
-  "id": "2",
-  "nombre": "Explosión Cayena",
-  "descripcion": "Dos rodajas de carne gruesa, queso cheddar derretido, crujiente bacon, lechuga, tomate y nuestra vibrante salsa 'Sriracha' para un toque picante equilibrado.",
-  "precio": 3900,
-  "imagen": "/images/02_explosion_cayena.png",
-  "estado": "disponible",
-  "nivel_picante": 3
-},
-{
-  "id": "3",
-  "nombre": "Bocado del Diablo",
-  "descripcion": "Una rodaja de carne jugosa, queso cheddar derretido, cebolla, pepino fresco, tomate y un toque suave de picante con nuestra clásica salsa 'Tabasco'.",
-  "precio": 4700,
-  "imagen": "/images/03_bocado_diablo.png",
-  "estado": "disponible",
-  "nivel_picante": 1
-},
-{
-  "id": "4",
-  "nombre": "Volcano",
-  "descripcion": "Una rodaja de carne deliciosa, queso cheddar derretido, lechuga, tomate y un suave toque de picante con nuestra clásica salsa 'Mostaza Picante'.",
-  "precio": 4000,
-  "imagen": "/images/04_incendio_azul.png",
-  "estado": "disponible",
-  "nivel_picante": 1
-},
-{
-  "id": "5",
-  "nombre": "Spicy Inferno",
-  "descripcion": "Una rodaja grande de carne, queso cheddar, cebolla morada, bacon, lechuga, pepino y tomate, todo bañado en nuestra intensa salsa 'Cholula Chipotle'.",
-  "precio": 4600,
-  "imagen": "/images/05_spicy_inferno.png",
-  "estado": "disponible",
-  "nivel_picante": 4
-},
- {
-  "id": "6",
-  "nombre": "Bomba de Wasabi",
-  "descripcion": "Una rodaja de carne jugosa, queso cheddar, lechuga, pepino y tomate, todo coronado con una capa del mejor y auténtico 'Wasabi Japonés'.",
-  "precio": 4800,
-  "imagen": "/images/06_bomba_wasabi.png",
-  "estado": "disponible",
-  "nivel_picante": 4
-},
-{
-  "id": "7",
-  "nombre": "Aliento de Dragón",
-  "descripcion": "Una rodaja gruesa de carne, queso cheddar, bacon, lechuga fresca, cebolla morada, pepino, tomate y un vibrante toque de nuestra salsa 'Frank's RedHot Buffalo Wings'.",
-  "precio": 5000,
-  "imagen": "/images/07_aliento_dragon.png",
-  "estado": "disponible",
-  "nivel_picante": 3
-},
-{
-  "id": "8",
-  "nombre": "Pura Candela",
-  "descripcion": "Tres jugosas rodajas de carne, queso cheddar derretido, lechuga fresca, tomate y un toque de picante con nuestra clásica salsa 'Valentina'.",
-  "precio": 3600,
-  "imagen": "/images/08_pura_candela.png",
-  "estado": "disponible",
-  "nivel_picante": 2
-},
-{
-  "id": "9",
-  "nombre": "Lava Ardiente",
-  "descripcion": "Una rodaja de carne, queso cheddar derretido, berenjenas asadas, lechuga, tomate y el toque ardiente de nuestra salsa 'El Yucateco Habanero Roja'.",
-  "precio": 4300,
-  "imagen": "/images/09_lava_ardiente.png",
-  "estado": "disponible",
-  "nivel_picante": 4
-},
-{
-  "id": "10",
-  "nombre": "Infierno Jalapeño",
-  "descripcion": "Dos jugosas rodajas de carne, queso cheddar derretido, pepino fresco, lechuga, tomate, cebolla morada y el toque característico de nuestra salsa de 'Jalapeño'.",
-  "precio": 4400,
-  "imagen": "/images/10_infierno_verde.png",
-  "estado": "disponible",
-  "nivel_picante": 3
-},
-{
-  "id": "11",
-  "nombre": "Muerte Picante",
-  "descripcion": "Una rodaja de carne jugosa, queso cheddar derretido, lechuga fresca, tomate y un suave toque de picante con nuestra clásica salsa 'Louisiana Hot Sauce'.",
-  "precio": 4900,
-  "imagen": "/images/11_muerte_picante.png",
-  "estado": "disponible",
-  "nivel_picante": 2
-},
-{
-  "id": "12",
-  "nombre": "Tormenta Roja",
-  "descripcion": "Una rodaja de carne jugosa, queso cheddar derretido, lechuga fresca, tomate y un toque agradable de nuestra salsa 'Cholula Original'.",
-  "precio": 4500,
-  "imagen": "/images/12_tormenta_roja.png",
-  "estado": "disponible",
-  "nivel_picante": 2
-}
+  {
+    "id": 1,
+    "nombre": "Pasta de Cacao Puro",
+    "descripcion": "100% cacao, sin azúcar ni aditivos. La base perfecta para tu ritual diario.",
+    "imagen": "/public/images/paq1.png",
+    "precio": "$3.200"
+  },
+  {
+    "id": 2,
+    "nombre": "Nibs de Cacao Tostados",
+    "descripcion": "Crujientes, intensos, perfectos para incorporar en smoothies y granolas.",
+    "imagen": "/public/images/paq2.png",
+    "precio": "$1.800"
+  },
+  {
+    "id": 3,
+    "nombre": "Cacao Especiado",
+    "descripcion": "Con canela de Ceylán, cardamomo y pimienta de cayena. Una explosión de sabor.",
+    "imagen": "/public/images/paq3.png",
+    "precio": "$2.600"
+  },
+  {
+    "id": 4,
+    "nombre": "Kit de Iniciación",
+    "descripcion": "Todo lo que necesitás para empezar tu práctica: pasta, molinillo y guía.",
+    "imagen": "/public/images/paq4.png",
+    "precio": "$5.500"
+  },
+  {
+    "id": 5,
+    "nombre": "Cacao en Polvo",
+    "descripcion": "100% cacao orgánico, sin azúcar ni aditivos. Perfecto para preparar tus bebidas favoritas.",
+    "imagen": "/public/images/cacao-polvo.png",
+    "precio": "$5.500"
+  },
+  {
+    "id": 6,
+    "nombre": "Cacao Ecuatoriano Fino",
+    "descripcion": "Cacao ecuatoriano fino, 100% orgánico y de comercio justo.",
+    "imagen": "/public/images/cacao-fino.png",
+    "precio": "$5.500"
+  },
+  {
+    "id": 7,
+    "nombre": "Manteca de Cacao",
+    "descripcion": "Manteca de cacao, 100% orgánica y de comercio justo.",
+    "imagen": "/public/images/manteca-cacao.png",
+    "precio": "$5.500"
+  },
+  {
+    "id": 8,
+    "nombre": "Pasta de Cacao Puro",
+    "descripcion": "Pasta de cacao puro, 100% orgánica y de comercio justo.",
+    "imagen": "/public/images/pasta-cacao.png",
+    "precio": "$3.200"
+  }
 ]

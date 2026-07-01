@@ -3,10 +3,11 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// Cargar variables de entorno antes de importar las rutas
+dotenv.config();
+
 const productosRoutes = require('./routes/productosRoutes');
 const authRoutes = require('./routes/authRoutes');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

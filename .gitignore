@@ -1,5 +1,5 @@
 # Ignora dependencias
-node_modules/
+node_modules
 
 # Variables de entorno
 .env
@@ -20,9 +20,9 @@ Thumbs.db
 *.swo
 
 # Salida de producción (si usás build)
-dist/
-build/
+dist
+build
 
 # IDEs / editores
-.vscode/
-.idea/
+.vscode
+.idea
