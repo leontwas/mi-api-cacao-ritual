@@ -31,28 +31,28 @@
     "id": 5,
     "nombre": "Cacao en Polvo",
     "descripcion": "100% cacao orgánico, sin azúcar ni aditivos. Perfecto para preparar tus bebidas favoritas.",
-    "imagen": "/public/images/cacao-polvo.png",
+    "imagen": "/public/images/paq5.png",
     "precio": "$5.500"
   },
   {
     "id": 6,
     "nombre": "Cacao Ecuatoriano Fino",
     "descripcion": "Cacao ecuatoriano fino, 100% orgánico y de comercio justo.",
-    "imagen": "/public/images/cacao-fino.png",
+    "imagen": "/public/images/paq6.png",
     "precio": "$5.500"
   },
   {
     "id": 7,
     "nombre": "Manteca de Cacao",
     "descripcion": "Manteca de cacao, 100% orgánica y de comercio justo.",
-    "imagen": "/public/images/manteca-cacao.png",
+    "imagen": "/public/images/paq7.png",
     "precio": "$5.500"
   },
   {
     "id": 8,
     "nombre": "Pasta de Cacao Puro",
     "descripcion": "Pasta de cacao puro, 100% orgánica y de comercio justo.",
-    "imagen": "/public/images/pasta-cacao.png",
+    "imagen": "/public/images/paq8.png",
     "precio": "$3.200"
   }
 ]

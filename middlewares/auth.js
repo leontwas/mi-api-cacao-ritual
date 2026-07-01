@@ -1,15 +1,14 @@
-// middlewares/auth.js
 const jwt = require('jsonwebtoken');
 
 function verificarToken(req, res, next) {
   const JWT_SECRET = process.env.JWT_SECRET || 'mi_secreto_dev';
-  // Extraer el token del header Authorization, soportando el formato: Bearer <token>
+  
   const authHeader = req.headers['authorization'];
   if (!authHeader) {
     return res.status(401).json({ error: 'Token requerido en el header Authorization' });
   }
 
-  const token = authHeader.split(' ')[1]; // Si viene como "Bearer token123"
+  const token = authHeader.split(' ')[1];
   if (!token) {
     return res.status(401).json({ error: 'Token malformado' });
   }
@@ -18,9 +17,19 @@ function verificarToken(req, res, next) {
     if (err) {
       return res.status(403).json({ error: 'Token inválido o expirado' });
     }
-    req.user = decoded; // Se guarda el payload decodificado
+    req.user = decoded; // decoded contiene { id, email, rol }
     next();
   });
 }
 
-module.exports = verificarToken;
+function soloAdmin(req, res, next) {
+  if (!req.user || req.user.rol !== 'admin') {
+    return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador' });
+  }
+  next();
+}
+
+module.exports = {
+  verificarToken,
+  soloAdmin
+};

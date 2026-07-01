@@ -8,6 +8,7 @@ dotenv.config();
 
 const productosRoutes = require('./routes/productosRoutes');
 const authRoutes = require('./routes/authRoutes');
+const carritoRoutes = require('./routes/carritoRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 // Rutas de la API
 app.use('/api/productos', productosRoutes);
 app.use('/api', authRoutes);
+app.use('/api/carrito', carritoRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res) => {
