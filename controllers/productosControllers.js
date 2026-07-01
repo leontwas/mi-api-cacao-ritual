@@ -1,47 +1,13 @@
-// src/controllers/productosControllers.js
-const fs = require('fs');
-const path = require('path');
-const DATA_PATH = path.join(__dirname, '../data/productosMock.json');
+const { db } = require('../config/firebase');
+const { subirImagen, eliminarImagen } = require('../config/cloudinary');
 
-/**
- * Lee los productos del archivo JSON.
- * @returns {Array} Un array de productos.
- * @throws {Error} Si ocurre un error al leer o parsear el archivo.
- */
-const leerProductos = () => {
-  try {
-    const data = fs.readFileSync(DATA_PATH, 'utf8');
-    // Si el archivo está vacío pero existe, JSON.parse fallaría,
-    // por eso un buen check para ver si el data tiene algo.
-    if (!data.trim()) {
-      return [];
-    }
-    return JSON.parse(data);
-  } catch (error) {
-    // Si el archivo no existe (ENOENT) o está vacío/mal formado (SyntaxError), devuelve un array vacío
-    if (error.code === 'ENOENT' || error instanceof SyntaxError) {
-      console.warn('Advertencia: El archivo de productos no existe o está vacío/mal formado. Iniciando con un array vacío.');
-      return [];
-    }
-    // Para otros errores de lectura, relanzar el error
-    throw error;
+// Verificación de inicialización de la base de datos
+const verificarBaseDeDatos = (res) => {
+  if (!db) {
+    res.status(500).json({ error: 'La base de datos de Firebase no está inicializada. Configure las variables de entorno.' });
+    return false;
   }
-};
-
-/**
- * Guarda el array de productos en el archivo JSON.
- * @param {Array} productos - El array de productos a guardar.
- * @throws {Error} Si ocurre un error al escribir en el archivo.
- */
-const guardarProductos = (productos) => {
-  try {
-    // Convierte el array a una cadena JSON con indentación de 2 espacios para mayor legibilidad
-    fs.writeFileSync(DATA_PATH, JSON.stringify(productos, null, 2));
-  } catch (error) {
-    console.error('Error al guardar productos:', error);
-    // Lanza un error específico para que pueda ser capturado por el controlador de ruta
-    throw new Error('No se pudo guardar la información de los productos.');
-  }
+  return true;
 };
 
 /**
@@ -49,17 +15,22 @@ const guardarProductos = (productos) => {
  * @route GET /api/productos?nombre=:nombre
  * @access Public
  */
-exports.obtenerProductos = (req, res) => {
+exports.obtenerProductos = async (req, res) => {
+  if (!verificarBaseDeDatos(res)) return;
+
   try {
-    let productos = leerProductos();
-    const { nombre } = req.query; // <--- Obtiene el parámetro de consulta 'nombre'
+    const { nombre } = req.query;
+    const snapshot = await db.collection('productos').get();
+    
+    let productos = [];
+    snapshot.forEach(doc => {
+      productos.push({ id: doc.id, ...doc.data() });
+    });
 
     if (nombre) {
-      // <--- Si se proporciona un nombre, filtra los productos
       const nombreLower = nombre.toLowerCase();
       productos = productos.filter(p => p.nombre && p.nombre.toLowerCase().includes(nombreLower));
       
-      // Si no se encuentra ningún producto con ese nombre, devuelve un 404
       if (productos.length === 0) {
         return res.status(404).json({ error: `No se encontraron productos con el nombre '${nombre}'.` });
       }
@@ -67,7 +38,7 @@ exports.obtenerProductos = (req, res) => {
 
     res.json(productos);
   } catch (error) {
-    console.error('Error al obtener productos:', error);
+    console.error('Error al obtener productos de Firestore:', error);
     res.status(500).json({ error: 'Ocurrió un error al obtener los productos.' });
   }
 };
@@ -77,19 +48,18 @@ exports.obtenerProductos = (req, res) => {
  * @route GET /api/productos/:id
  * @access Public
  */
-exports.obtenerProductoPorId = (req, res) => {
+exports.obtenerProductoPorId = async (req, res) => {
+  if (!verificarBaseDeDatos(res)) return;
+
   try {
-    const productos = leerProductos();
-    const { id } = req.params; // Desestructura el ID de los parámetros de la URL
+    const { id } = req.params;
+    const doc = await db.collection('productos').doc(String(id)).get();
 
-    // Aseguramos que el ID del producto y el ID de la solicitud sean strings para una comparación consistente
-    const producto = productos.find(p => String(p.id) === String(id));
-
-    if (!producto) {
-      // Si el producto no se encuentra, devuelve un estado 404
+    if (!doc.exists) {
       return res.status(404).json({ error: `Producto con ID '${id}' no encontrado.` });
     }
-    res.json(producto);
+
+    res.json({ id: doc.id, ...doc.data() });
   } catch (error) {
     console.error('Error al obtener producto por ID:', error);
     res.status(500).json({ error: 'Ocurrió un error al buscar el producto.' });
@@ -97,38 +67,62 @@ exports.obtenerProductoPorId = (req, res) => {
 };
 
 /**
- * @desc Crea un nuevo producto.
+ * @desc Crea un nuevo producto con soporte para subir imágenes a Cloudinary.
  * @route POST /api/productos
  * @access Private (requiere token)
  */
-exports.crearProducto = (req, res) => {
+exports.crearProducto = async (req, res) => {
+  if (!verificarBaseDeDatos(res)) return;
+
   try {
-    const productos = leerProductos();
-    const nuevoProducto = req.body;
+    const { nombre, descripcion, precio } = req.body;
+    let { id } = req.body;
 
     // --- Validación básica del nuevo producto ---
-    if (!nuevoProducto || !nuevoProducto.nombre || typeof nuevoProducto.precio === 'undefined' || nuevoProducto.precio < 0) {
+    if (!nombre || typeof precio === 'undefined' || parseFloat(precio) < 0) {
       return res.status(400).json({ error: 'Datos del producto incompletos o inválidos (requiere nombre y precio positivo).' });
     }
 
-    // Si el ID viene en el body, se valida. Si no, se genera uno nuevo.
-    if (nuevoProducto.id) {
-      if (productos.some(p => String(p.id) === String(nuevoProducto.id))) {
-        return res.status(400).json({ error: `El ID '${nuevoProducto.id}' ya existe.` });
+    // Verificar si el ID ya existe en Firestore
+    if (id) {
+      const docExistente = await db.collection('productos').doc(String(id)).get();
+      if (docExistente.exists) {
+        return res.status(400).json({ error: `El ID '${id}' ya existe.` });
       }
     } else {
-      // Generar un ID simple para el mock (puedes usar librerías como 'uuid' para IDs únicos reales)
-      nuevoProducto.id = String(Date.now()); // Convertir a String para consistencia
+      // Generar ID único usando timestamp
+      id = String(Date.now());
     }
 
-    productos.push(nuevoProducto);
-    guardarProductos(productos); // Esto ya tiene su propio try-catch interno
-    res.status(201).json(nuevoProducto); // Devuelve el producto creado con estado 201 (Created)
+    let imagenUrl = req.body.imagen || '';
+    let imagenPublicId = null;
+
+    // Subir imagen a Cloudinary si se proporciona un archivo
+    if (req.file) {
+      try {
+        const resultadoCloudinary = await subirImagen(req.file.buffer);
+        imagenUrl = resultadoCloudinary.secure_url;
+        imagenPublicId = resultadoCloudinary.public_id;
+      } catch (err) {
+        console.error('Error al subir imagen a Cloudinary:', err);
+        return res.status(500).json({ error: 'Error al procesar la imagen del producto.' });
+      }
+    }
+
+    const nuevoProducto = {
+      nombre,
+      descripcion: descripcion || '',
+      precio: parseFloat(precio), // Guardar como número real
+      imagen: imagenUrl,
+      imagen_public_id: imagenPublicId
+    };
+
+    await db.collection('productos').doc(String(id)).set(nuevoProducto);
+
+    res.status(201).json({ id, ...nuevoProducto });
   } catch (error) {
     console.error('Error al crear producto:', error);
-    // Si el error viene de guardarProductos, lo mostramos adecuadamente
-    const errorMessage = error.message.includes('No se pudo guardar') ? error.message : 'Ocurrió un error al crear el producto.';
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Ocurrió un error interno al crear el producto.' });
   }
 };
 
@@ -137,27 +131,27 @@ exports.crearProducto = (req, res) => {
  * @route PUT /api/productos/:id
  * @access Private (requiere token)
  */
-exports.actualizarProducto = (req, res) => {
-  try {
-    const productos = leerProductos();
-    const { id } = req.params;
-    const index = productos.findIndex(p => String(p.id) === String(id));
+exports.actualizarProducto = async (req, res) => {
+  if (!verificarBaseDeDatos(res)) return;
 
-    if (index === -1) {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('productos').doc(String(id));
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
       return res.status(404).json({ error: `Producto con ID '${id}' no encontrado para actualizar.` });
     }
 
-    let productoExistente = productos[index];
-    const updates = req.body; // Obtiene todas las actualizaciones del cuerpo de la solicitud
+    const productoExistente = doc.data();
+    const updates = req.body;
+    
+    // Objeto con las actualizaciones que enviaremos a Firestore
+    const camposActualizar = {};
 
-    // Itera sobre las propiedades en el cuerpo de la solicitud y actualiza el producto existente
+    // Validar y aplicar actualizaciones del body
     for (const key in updates) {
-      if (key === 'id') { // No permitir cambiar el ID a través del body
-        if (String(updates[key]) !== String(productoExistente.id)) {
-          return res.status(400).json({ error: 'No se permite cambiar el ID de un producto existente.' });
-        }
-        continue; // Ignora el ID si es el mismo
-      }
+      if (key === 'id') continue; // No permitir cambiar el ID
 
       const value = updates[key];
 
@@ -165,59 +159,83 @@ exports.actualizarProducto = (req, res) => {
         if (key === 'precio') {
           const numericValue = parseFloat(value);
           if (!isNaN(numericValue) && numericValue > 0) {
-            productoExistente[key] = numericValue; // Direct update
+            camposActualizar[key] = numericValue;
           } else {
             return res.status(400).json({ error: 'El precio debe ser un número positivo para modificar.' });
           }
-        } else if (key === 'imagen' && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(value)) {
-          return res.status(400).json({ error: 'La URL de la imagen debe ser un formato válido (JPG, PNG, GIF, WEBP).' });
         } else if (typeof value === 'string' && value.trim() === '') {
           continue;
-        }
-        else {
-          productoExistente[key] = value; // Direct update
+        } else {
+          camposActualizar[key] = value;
         }
       }
     }
 
-    // Si no se proporcionaron campos para actualizar
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'No se proporcionaron campos para actualizar.' });
+    // Subir nueva imagen a Cloudinary si se proporciona y reemplazar la anterior
+    if (req.file) {
+      try {
+        const resultadoCloudinary = await subirImagen(req.file.buffer);
+        camposActualizar.imagen = resultadoCloudinary.secure_url;
+        camposActualizar.imagen_public_id = resultadoCloudinary.public_id;
+
+        // Eliminar la imagen vieja si existía en Cloudinary
+        if (productoExistente.imagen_public_id) {
+          await eliminarImagen(productoExistente.imagen_public_id).catch(err => {
+            console.error('Error al eliminar imagen vieja de Cloudinary:', err);
+          });
+        }
+      } catch (err) {
+        console.error('Error al subir nueva imagen a Cloudinary:', err);
+        return res.status(500).json({ error: 'Error al procesar la nueva imagen del producto.' });
+      }
     }
 
-    productos[index] = productoExistente; // Actualiza el producto en el array
-    guardarProductos(productos); // Guarda el array actualizado
-    res.json(productoExistente); // Devuelve el producto actualizado
+    // Si no se proporcionaron campos para actualizar y tampoco hay nueva imagen
+    if (Object.keys(camposActualizar).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron campos válidos para actualizar.' });
+    }
 
+    await docRef.update(camposActualizar);
+
+    res.json({ id, ...productoExistente, ...camposActualizar });
   } catch (error) {
     console.error('Error al actualizar producto:', error);
-    const errorMessage = error.message.includes('No se pudo guardar') ? error.message : 'Ocurrió un error interno al actualizar el producto.';
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Ocurrió un error interno al actualizar el producto.' });
   }
 };
 
 /**
- * @desc Elimina un producto por su ID.
+ * @desc Elimina un producto por su ID y limpia su imagen de Cloudinary.
  * @route DELETE /api/productos/:id
  * @access Private (requiere token)
  */
-exports.eliminarProducto = (req, res) => {
-  try {
-    const productos = leerProductos();
-    const { id } = req.params;
-    // Filtra los productos, excluyendo el que tiene el ID proporcionado
-    const nuevosProductos = productos.filter(p => String(p.id) !== String(id));
+exports.eliminarProducto = async (req, res) => {
+  if (!verificarBaseDeDatos(res)) return;
 
-    // Si el tamaño del array no cambió, significa que el producto no fue encontrado
-    if (nuevosProductos.length === productos.length) {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('productos').doc(String(id));
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
       return res.status(404).json({ error: `Producto con ID '${id}' no encontrado para eliminar.` });
     }
 
-    guardarProductos(nuevosProductos); // Guarda el array sin el producto eliminado
-    res.json({ mensaje: `Producto con ID '${id}' eliminado correctamente.` });
+    const producto = doc.data();
+
+    // Eliminar la imagen de Cloudinary si existía
+    if (producto.imagen_public_id) {
+      await eliminarImagen(producto.imagen_public_id).catch(err => {
+        console.error('Error al eliminar imagen de Cloudinary:', err);
+      });
+    }
+
+    // Eliminar el documento de Firestore
+    await docRef.delete();
+
+    res.json({ mensaje: `Producto con ID '${id}' eliminado correctamente de la base de datos.` });
   } catch (error) {
     console.error('Error al eliminar producto:', error);
-    const errorMessage = error.message.includes('No se pudo guardar') ? error.message : 'Ocurrió un error al eliminar el producto.';
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: 'Ocurrió un error al eliminar el producto.' });
   }
 };

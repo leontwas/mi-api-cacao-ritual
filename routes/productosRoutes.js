@@ -1,6 +1,7 @@
-// API-BURGER/routes/productosRoutes.js
+// routes/productosRoutes.js
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const {
   obtenerProductos,
   obtenerProductoPorId,
@@ -9,13 +10,15 @@ const {
   eliminarProducto
 } = require('../controllers/productosControllers');
 
-// Cambié 'middleware' por 'middlewares' y agregué la extensión '.js'
 const verificarToken = require('../middlewares/auth.js');
+
+// Configuración de multer en memoria (compatible con Vercel)
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/', obtenerProductos);
 router.get('/:id', obtenerProductoPorId);
-router.post('/', verificarToken, crearProducto);
-router.put('/:id', verificarToken, actualizarProducto);
+router.post('/', verificarToken, upload.single('imagen'), crearProducto);
+router.put('/:id', verificarToken, upload.single('imagen'), actualizarProducto);
 router.delete('/:id', verificarToken, eliminarProducto);
 
 module.exports = router;

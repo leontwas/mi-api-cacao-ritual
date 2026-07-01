@@ -1,8 +1,12 @@
-# Ignora dependencias
-node_modules
+# Dependencias
+node_modules/
 
-# Variables de entorno
+# Variables de entorno y credenciales
 .env
+firebase-credentials.json
+firebase-service-account.json
+*credentials*.json
+*service-account*.json
 
 # Archivos de logs
 logs/
@@ -20,9 +24,9 @@ Thumbs.db
 *.swo
 
 # Salida de producción (si usás build)
-dist
-build
+dist/
+build/
 
 # IDEs / editores
-.vscode
-.idea
+.vscode/
+.idea/
