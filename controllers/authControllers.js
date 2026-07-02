@@ -39,7 +39,7 @@ exports.registro = async (req, res) => {
 
     // Si es el primer usuario, lo creamos como admin (para pruebas fáciles) o definimos un email específico para admin.
     // Vamos a hacer que si el email es 'admin@cacaoritual.com' o similar sea admin, de lo contrario cliente.
-    const rol = email.toLowerCase() === 'admin@cacaoritual.com' ? 'admin' : 'cliente';
+    const rol = email.toLowerCase() === 'admin@cacaoritual.com' ? 'admin' : 'usuario';
 
     const nuevoUsuario = {
       nombre,

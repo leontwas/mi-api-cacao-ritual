@@ -1,11 +1,16 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Cargar variables de entorno aquí para garantizar que estén disponibles
+// incluso si este módulo se importa antes de que server.js llame a dotenv.config()
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 let db;
 
 try {
-  const serviceAccountPath = path.join(__dirname, '../firebase-service-account.json');
+  const serviceAccountPath = path.join(__dirname, '../firebase-credentials.json');
 
   if (fs.existsSync(serviceAccountPath)) {
     const serviceAccount = require(serviceAccountPath);

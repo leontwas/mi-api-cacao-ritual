@@ -32,7 +32,12 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// Inicio del servidor
-app.listen(PORT, () => {
-  console.log(`API corriendo en http://localhost:${PORT}`);
-});
+// Inicio del servidor (solo en modo local, no en Vercel)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`API corriendo en http://localhost:${PORT}`);
+  });
+}
+
+// Exportar la app para Vercel serverless
+module.exports = app;
