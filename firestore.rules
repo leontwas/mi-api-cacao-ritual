@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =====================================================================
+    // IMPORTANTE: Esta API usa Firebase Admin SDK (server-side), que ignora
+    // estas reglas por completo. Las reglas aquí bloquean el acceso directo
+    // desde clientes web/móvil, dejando toda la lógica en el backend.
+    // =====================================================================
+
+    // PRODUCTOS: Lectura pública, escritura solo desde el servidor (Admin SDK)
+    // El Admin SDK bypasea estas reglas, pero si alguien intenta acceder
+    // directamente con el SDK de cliente, se bloquea.
+    match /productos/{productoId} {
+      // Lectura pública: cualquiera puede leer productos
+      allow read: if true;
+
+      // Escritura denegada para clientes directos
+      // (el backend Node.js usa Admin SDK y no pasa por estas reglas)
+      allow write: if false;
+    }
+
+    // USUARIOS: Solo el servidor puede leer/escribir usuarios.
+    // Nunca exponer contraseñas hasheadas al cliente directamente.
+    match /usuarios/{usuarioId} {
+      allow read, write: if false;
+    }
+
+    // CARRITOS: Solo el servidor puede leer/escribir carritos.
+    match /carritos/{userId} {
+      allow read, write: if false;
+
+      match /items/{itemId} {
+        allow read, write: if false;
+      }
+    }
+
+    // REGLA CATCH-ALL: Denegar acceso a cualquier colección no listada arriba
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
